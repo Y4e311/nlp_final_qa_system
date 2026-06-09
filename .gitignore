@@ -1,0 +1,24 @@
+# 機密:API key 與本機設定,絕不上傳
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# 索引(可由 ingest.py 重新產生,不需進版控)
+data/index/
+
+# 輸出結果
+result*.csv
+output*.csv
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# 公開通道用的執行檔(不上傳)
+cloudflared.exe

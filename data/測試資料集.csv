@@ -1,0 +1,37 @@
+﻿題目,參考答案,來源
+訓練對於機器學習模型來說為什麼很重要？,訓練是 MACHINE LEARNING MODELS 必不可少的過程。,c0_course_introduction.pdf p18
+"Which type of NLP model is generally faster, cheaper, and more efficient according to the content?",Task-specific NLP models,c0_course_introduction.pdf p20
+遲交作業最多可以得到多少分？,80分,c0_course_introduction.pdf p5
+In which NLP applications are stemming and lemmatization still important?,"Search Engines / Document Retrieval (Google, Bing), Online Advertising (Google Ads, Meta Ads), Social Media Tagging (Twitter, Instagram)",c1_vector-based_models.pdf p49
+Word2Vec 不能處理哪些詞彙？,無法處理出 Vocabulary 的詞彙（OOV words）,c1_vector-based_models.pdf p77
+What is the key step in combining movie data for TF-IDF recommendation system?,how to combine movie data into a single string,c1_vector-based_models.pdf p70
+N-Gram模型是如何預測單詞的？,根據前N個單詞來預測單詞。,c2_probabilistic_models.pdf p2
+What is a limitation of Markov Models mentioned in the content?,Lacks long-term memory,c2_probabilistic_models.pdf p53
+Do we have a sufficient amount of data?,不確定，需要更多資料來估計如此多的概率。,c2_probabilistic_models.pdf p8
+What is the purpose of article spinning?,"To reduce content creation efforts, save time and costs, and boost SEO through link-building.",c3_article_spinner_and_cipher_decryption.pdf p2
+為什麼要用N-gram來解密密碼？,有助於辨識可能的字母頻率，並捕捉常見的字母序列以提高準確性。,c3_article_spinner_and_cipher_decryption.pdf p16
+What should the model return if the message is translated correctly?,High probability,c3_article_spinner_and_cipher_decryption.pdf p17
+什麼是細分情感分析？,使用尺度（例如：非常正面、正面、中性、負面、非常負面）。,c4_ml_models_pt1.pdf p15
+What is a limitation of ROUGE?,"Favors surface similarity, ignores meaning",c4_ml_models_pt1.pdf p44
+Lexicon-Based Approach 如何處理否定詞？,不好 → -1*1,c4_ml_models_pt1.pdf p16
+What does a high alpha value indicate in LDA?,Documents contain many topics evenly.,c4_ml_models_pt2.pdf p18
+在LDA模型中，如何決定主題分配？,根據文檔中主題出現頻率以及詞彙在所有文檔中的主題出現頻率來重新分配詞彙到主題。,c4_ml_models_pt2.pdf p19
+What happens if too few topics are set in topic modeling?,"Oversimplifies the data, leading to broad and uninformative topics.",c4_ml_models_pt2.pdf p52
+CNN在處理長距離依賴關係方面有哪些困難？,他們 struggle 與長距離依賴關係在語言中的處理。,c5_DL_models.pdf p25
+"Can you just assign numbers directly to the data points like 0 = Search, 1 = Ad, 2 = Friend?",No...,c5_DL_models.pdf p11
+傳統NLP為何難以處理諷刺？,因為它往往無法捕捉語境、詞序或語義。,c5_DL_models.pdf p3
+What is the model size of GPT-3?,1750 billion,c6_transformer.pptx.pdf p36
+什麼是 Prediction-layer Distillation？,模仿 BERT 在任務上的輸出行為（機率分佈）,c6_transformer.pptx.pdf p16
+What task does ALBERT use instead of BERT's Next Sentence Prediction (NSP) task?,Sentence Order Prediction (SOP),c6_transformer.pptx.pdf p1
+GraphRAG 和 Naive RAG 在處理跨文件實體關聯時的效能差異是什麼？,這兩者在跨文件處理上的效能評估數據為何？,c7_QA_system.pdf p63
+What is the Lost in the middle phenomenon?,It refers to large language models (LLM) struggling to extract key information when processing very long contexts.,c7_QA_system.pdf p61
+APPLE 是在哪一年成立的？,1976,c7_QA_system.pdf p13
+What is the main improvement of Transformer-XL over traditional Transformers in handling long sequences?,Transformer-XL uses a segment-level recurrence mechanism and relative positional encoding.,c7_transformer_pt1.pdf p56
+XLNet是如何訓練的？,通過對輸入序列進行不同的排列組合，生成多種可能的排列順序，在訓練時能夠同時考慮詞的上下文訊息。,c7_transformer_pt1.pdf p52
+What is the distance between '我' and '喜歡' in the sentence '我 喜歡 吃 蘋果'?,'我'與'喜歡'的距離是+1,c7_transformer_pt1.pdf p55
+ICL SQL Generator 如何將原始問題轉換為 Skeleton？,將原始問題「What’s the population of China in 2020?」轉換為「What’s the population of <country> in <year>?」,c8_text-to-sql.pdf p47
+What does Exact Matching (EM) measure in SQL query evaluation?,It calculates the proportion of SQL queries that match exactly.,c8_text-to-sql.pdf p32
+為什麼修正器可能無法處理語意錯誤但語法沒錯的情況？,出錯的原因很隱諱,c8_text-to-sql.pdf p53
+What is the output when using Flan-T5 for NLI prediction with a given premise and hypothesis?,'entailment',c9_advanced_nlp_tasks.pdf p22
+不同語言的主詞、動詞、受詞順序常不同，需要重新組織句子嗎？,需要,c9_advanced_nlp_tasks.pdf p36
+What is the main advantage of SimCSE in a resource-limited environment?,It only requires dropout to generate embedding perturbations.,c9_advanced_nlp_tasks.pdf p54

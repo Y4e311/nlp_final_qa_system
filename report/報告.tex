@@ -1,0 +1,239 @@
+% !TEX program = xelatex
+% 上傳到 Overleaf 後,請於左上 Menu → Compiler 選擇 "XeLaTeX" 再編譯(中文才會正常)。
+\documentclass[12pt]{ctexart}
+
+% 改用 Noto CJK 字型(Overleaf 內建),涵蓋較完整的中文字,
+% 避免「蓁、勳」等較罕用字變成方框(tofu)。需以 XeLaTeX 編譯。
+\setCJKmainfont{Noto Serif CJK TC}
+% 等寬中文字型:讓程式碼區塊(lstlisting/\ttfamily)裡的中文註解不變方框。
+% 沿用已確定可用的 Noto Serif CJK TC(程式碼中文為註解,外觀差異無妨)。
+\setCJKmonofont{Noto Serif CJK TC}
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometry}
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue]{hyperref}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!50},
+  backgroundcolor=\color{gray!8},
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\title{\textbf{自然語言處理期末專題\\課程教材問答系統(RAG)}}
+\author{}
+\date{\today}
+
+\begin{document}
+
+% ctex 自動產生的標題預設為簡體,逐一改為繁體(目錄、圖、表、附錄)
+\renewcommand{\contentsname}{目錄}
+\renewcommand{\figurename}{圖}
+\renewcommand{\tablename}{表}
+\renewcommand{\appendixname}{附錄}
+
+\maketitle
+
+%======================================================================
+\section*{組員資訊}
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+\textbf{學號} & \textbf{姓名} \\
+\midrule
+7114056008 & 侯如蓁 \\
+7114056093 & 蔡奇勳 \\
+7114056126 & 施秉榕 \\
+7114056143 & 陳睿彪 \\
+7114056180 & 顏祥益 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.5em}
+\noindent\textbf{GitHub 連結:}\ \url{https://github.com/Y4e311/nlp_final_qa_system}
+
+\tableofcontents
+\newpage
+
+%======================================================================
+\section{專題簡介}
+本專題實作一套\textbf{以 RAG(Retrieval-Augmented Generation,檢索增強生成)為架構的問答系統},能回答與本課程(自然語言處理)教材相關的中、英文問題。系統以課程簡報作為知識庫,使用者輸入問題後,系統先從教材中\textbf{檢索}最相關的內容片段,再交由\textbf{大型語言模型(LLM)}根據這些片段生成簡潔、正確的答案。
+
+設計時特別針對評分重點最佳化:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{準確度}:支援中、英文問題,答案需有教材依據,避免幻覺。
+  \item \textbf{回覆速度}:採用輕量檢索與遠端 GPU 生成,平均約 1 秒/題。
+  \item \textbf{答案精簡}:以提示詞(prompt)約束模型給出簡短、不冗長的回答。
+\end{itemize}
+
+%======================================================================
+\section{系統架構}
+整體流程分為「離線建索引」與「線上問答」兩階段,如圖~\ref{fig:arch}。
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  node distance=0.7cm and 1cm,
+  box/.style={draw, rounded corners, align=center, minimum height=0.9cm, inner sep=6pt, fill=blue!6},
+  data/.style={draw, align=center, minimum height=0.9cm, inner sep=6pt, fill=orange!10},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (pdf) {課程簡報 PDF\\(12 份)+ 補充資料};
+\node[box, below=of pdf] (chunk) {擷取文字 → 切塊};
+\node[box, below=of chunk] (embed1) {bge-m3 向量化};
+\node[data, below=of embed1] (index) {向量索引\\embeddings.npy + chunks.json};
+
+\node[box, right=3.5cm of pdf] (q) {使用者問題};
+\node[box, below=of q] (embed2) {bge-m3 向量化};
+\node[box, below=of embed2] (search) {餘弦相似度檢索\\取 Top-K 片段};
+\node[box, below=of search] (llm) {qwen2.5:7b 生成\\(遠端伺服器)};
+\node[data, below=of llm] (ans) {簡潔答案};
+
+\draw[arr] (pdf) -- (chunk);
+\draw[arr] (chunk) -- (embed1);
+\draw[arr] (embed1) -- (index);
+\draw[arr] (q) -- (embed2);
+\draw[arr] (embed2) -- (search);
+\draw[arr] (search) -- (llm);
+\draw[arr] (llm) -- (ans);
+\draw[arr] (index.east) -- ++(0.5,0) |- (search.west);
+\end{tikzpicture}
+\caption{系統架構:左側為離線建索引,右側為線上問答。}
+\label{fig:arch}
+\end{figure}
+
+\noindent 技術選型如表~\ref{tab:stack}。核心考量是\textbf{輕量、離線可重現、中英文兼顧}:檢索用專用向量模型在本機執行,吃重的文字生成則交由遠端 GPU 伺服器。
+
+\begin{table}[h]
+\centering
+\caption{技術選型}
+\label{tab:stack}
+\begin{tabular}{lll}
+\toprule
+\textbf{元件} & \textbf{採用技術} & \textbf{說明} \\
+\midrule
+PDF 文字擷取 & PyMuPDF & 對簡報排版友善,保留頁碼以標來源 \\
+切塊 Chunking & 自訂滑動視窗 & 800 字/塊,重疊 150 字,於自然斷點切分 \\
+Embedding & BAAI/bge-m3 & 多語(中英)檢索模型,1024 維 \\
+向量檢索 & NumPy 餘弦相似度 & 扁平暴力檢索,毫秒級,免額外依賴 \\
+生成 LLM & qwen2.5:7b (Ollama) & 中英文俱佳,部署於遠端 GPU 伺服器 \\
+介面 & Streamlit + CSV 批次 & 互動網頁 demo 與評分用批次共用核心 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%======================================================================
+\section{方法}
+
+\subsection{資料前處理與切塊}
+以 PyMuPDF 逐頁擷取簡報文字,跳過幾乎無文字的純圖頁。接著以\textbf{字元滑動視窗}切塊(每塊上限 800 字、相鄰塊重疊 150 字),並盡量在換行或句號等\textbf{自然斷點}切分,以保留語意完整性。每個片段都記錄\textbf{來源檔名與頁碼},供答案標註出處。最終由 12 份簡報與 1 份補充資料共切出 \textbf{657 個片段}。
+
+\subsection{向量化與檢索}
+採用 \texttt{BAAI/bge-m3} 作為 embedding 模型,將每個片段轉為 1024 維向量,並\textbf{預先做 L2 正規化}。如此一來,餘弦相似度即等於向量內積,檢索時只需一次矩陣乘法即可對全部片段評分,再以 \texttt{argsort} 取出相似度最高的前 $K$ 個($K=5$)。由於片段數僅數百,暴力檢索即可達毫秒級,毋須 FAISS 等近似最近鄰索引。向量與原文分別存於 \texttt{embeddings.npy} 與 \texttt{chunks.json},兩者以列索引一一對齊。
+
+\subsection{答案生成與提示詞設計}
+將檢索到的片段組成上下文,連同問題送入 \texttt{qwen2.5:7b}(透過遠端 Ollama 伺服器的 API,金鑰以 \texttt{.env} 管理、不進版控)。系統提示詞(system prompt)的設計直接對應評分重點:
+\begin{enumerate}[leftmargin=2em]
+  \item 僅依據提供的片段作答,不得編造;片段中沒有答案時,明確回覆「根據課程內容找不到相關資訊」,以避免幻覺。
+  \item 答案須\textbf{簡潔}(一句或重點即可),不重複題目、不冗長。
+  \item 以\textbf{與問題相同的語言}回答,中文問題一律使用繁體中文。
+\end{enumerate}
+生成溫度設為 $0.2$,使回答穩定、減少發散。
+
+%======================================================================
+\section{資料來源}
+\subsection{知識庫:課程簡報}
+知識庫由本課程 12 份簡報構成,涵蓋:課程介紹、向量模型、機率模型、文章改寫與密碼破解、機器學習模型(上/下)、深度學習模型、Transformer、QA 系統、Text-to-SQL、進階 NLP 任務等主題。
+
+\subsection{補充資料}
+依專題「自行收集課程相關內容」之要求,我們額外整理一份\textbf{課程行政資訊}補充檔(\texttt{課程資訊.md}),內容皆出自簡報(c0、c5),包含授課老師聯絡方式、評分方式與考試日期等,使行政類問題亦能正確回答。
+
+\subsection{測試資料集}
+為驗證準確度,我們撰寫腳本(\texttt{make\_testset.py})自動產生\textbf{有教材根據}的測試題:從每章挑出內容最豐富的片段,請 LLM 依該片段生成一題問答,中、英文交錯,共 \textbf{36 題}。輸出兩個 CSV:含參考答案的完整版,以及僅含題目、供批次評分輸入的版本。輸入與輸出格式統一為 \texttt{.csv}。
+
+%======================================================================
+\section{實驗與結果}
+我們以前述 36 題測試集實跑系統,結果摘要如下:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{回覆速度}:平均約 \textbf{1.0 秒/題}(生成在遠端 GPU 進行)。
+  \item \textbf{準確度}:約 \textbf{29/36} 題能給出有教材依據的正確答案;其餘多為標題頁或語意模糊的問題。
+  \item \textbf{答案長度}:多為一句話或重點,符合「不冗長」要求。
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{問答範例}
+\label{tab:examples}
+\begin{tabular}{p{6.2cm}p{7cm}}
+\toprule
+\textbf{問題} & \textbf{系統答案} \\
+\midrule
+什麼是 Time-homogeneous Markov process? & 時間無變的馬可夫過程是指轉移矩陣不隨時間變化的馬可夫過程。 \\
+幾月幾號是期中考? & 4 月 22 日。 \\
+這門課老師是誰? & 這門課的授課老師是楊景明(Albert Yang)。 \\
+What is a limitation of ROUGE? & Favors surface similarity, ignores meaning. \\
+（教材中沒有的問題) & 根據課程內容找不到相關資訊。 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%======================================================================
+\section{討論}
+
+\subsection{Embedding 模型的關鍵影響}
+開發初期,因遠端伺服器僅有生成型 LLM、無專用 embedding 模型,我們曾嘗試直接以 \texttt{qwen2.5:7b} 的 \texttt{/api/embed} 充當檢索向量。結果\textbf{檢索完全失準}:相似度分數全擠在 0.85$\sim$0.90、鑑別度極低,連「期中考日期」這種教材明載的問題都撈錯片段而答不出來。改用專用檢索模型 \texttt{bge-m3} 後,相同問題立即正確命中。
+
+此經驗的啟示是:\textbf{RAG 的檢索必須使用「專用的句向量/檢索模型」,不能用一般生成式 LLM 的隱狀態充當 embedding};兩者的向量空間性質差異極大,後者在檢索任務上鑑別度不足。
+
+\subsection{LLM 的回答不穩定性}
+即使正確片段已被檢索到,當問題過於\textbf{簡短、語境不足}時(例如只打「老師 email」),模型仍偶爾保守地回覆「找不到」。我們透過(1)整理\textbf{措辭清楚的補充知識},以及(2)提示詞中要求「片段中有相關資訊就盡量回答」,降低此類不穩定。
+
+\subsection{效率設計}
+\begin{itemize}[leftmargin=2em]
+  \item 檢索採\textbf{正規化向量 + 內積}一次矩陣運算完成,並以扁平 NumPy 儲存,免去資料庫與索引建置成本。
+  \item 將吃重的生成移至 GPU 伺服器,本機僅負責輕量檢索,兼顧速度與資源。
+  \item 索引為可重建的衍生檔,不進版控;他人 clone 後執行一次建索引指令即可重現。
+\end{itemize}
+
+\subsection{限制與未來工作}
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{資料覆蓋}:答案不在語料就無法回答(如簡報未明寫的資訊),可持續擴充補充資料。
+  \item \textbf{多義詞雜訊}:如「老師」在 RLHF 語境亦出現,會干擾檢索;未來可加入重排序(re-ranking)。
+  \item \textbf{繁簡混用}:生成偶爾滲入簡體字,未來可加 OpenCC 後處理統一為繁體。
+  \item \textbf{線上部署}:目前為本機 demo,未來可部署至雲端平台提供公開連結。
+\end{itemize}
+
+%======================================================================
+\section{結論}
+本專題完成一套輕量、離線可重現、支援中英文的課程教材 RAG 問答系統。透過專用檢索模型與提示詞設計,系統能以約 1 秒/題的速度給出簡潔且有教材依據的答案。開發過程中最重要的收穫,是釐清了\textbf{檢索向量模型對 RAG 品質的決定性影響}。
+
+%======================================================================
+\appendix
+\section{執行方式}
+\begin{lstlisting}[language=bash]
+# 1. 安裝套件
+pip install -r requirements.txt
+
+# 2. 設定連線(複製 .env.example 為 .env,填入伺服器網址與 API key)
+
+# 3. 建立索引(讀取課程簡報與補充資料)
+python src/ingest.py
+
+# 4a. 啟動網頁問答介面
+streamlit run src/app.py
+
+# 4b. 批次處理測資(評分用,CSV 進/出)
+python src/batch.py 輸入題目.csv 輸出結果.csv
+\end{lstlisting}
+
+\end{document}

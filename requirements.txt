@@ -1,0 +1,9 @@
+# Python 3.13(開發環境:3.13.7)
+# 主要相依套件;完整鎖定版本見 requirements-lock.txt
+pymupdf>=1.24
+requests>=2.31
+numpy>=1.26
+pandas>=2.0
+streamlit>=1.36
+sentence-transformers>=3.0
+opencc-python-reimplemented>=0.1.7   # 繁簡檢查工具 src/check_traditional.py 使用

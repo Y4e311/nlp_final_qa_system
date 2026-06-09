@@ -1,0 +1,36 @@
+﻿訓練對於機器學習模型來說為什麼很重要？
+"Which type of NLP model is generally faster, cheaper, and more efficient according to the content?"
+遲交作業最多可以得到多少分？
+In which NLP applications are stemming and lemmatization still important?
+Word2Vec 不能處理哪些詞彙？
+What is the key step in combining movie data for TF-IDF recommendation system?
+N-Gram模型是如何預測單詞的？
+What is a limitation of Markov Models mentioned in the content?
+Do we have a sufficient amount of data?
+What is the purpose of article spinning?
+為什麼要用N-gram來解密密碼？
+What should the model return if the message is translated correctly?
+什麼是細分情感分析？
+What is a limitation of ROUGE?
+Lexicon-Based Approach 如何處理否定詞？
+What does a high alpha value indicate in LDA?
+在LDA模型中，如何決定主題分配？
+What happens if too few topics are set in topic modeling?
+CNN在處理長距離依賴關係方面有哪些困難？
+"Can you just assign numbers directly to the data points like 0 = Search, 1 = Ad, 2 = Friend?"
+傳統NLP為何難以處理諷刺？
+What is the model size of GPT-3?
+什麼是 Prediction-layer Distillation？
+What task does ALBERT use instead of BERT's Next Sentence Prediction (NSP) task?
+GraphRAG 和 Naive RAG 在處理跨文件實體關聯時的效能差異是什麼？
+What is the Lost in the middle phenomenon?
+APPLE 是在哪一年成立的？
+What is the main improvement of Transformer-XL over traditional Transformers in handling long sequences?
+XLNet是如何訓練的？
+What is the distance between '我' and '喜歡' in the sentence '我 喜歡 吃 蘋果'?
+ICL SQL Generator 如何將原始問題轉換為 Skeleton？
+What does Exact Matching (EM) measure in SQL query evaluation?
+為什麼修正器可能無法處理語意錯誤但語法沒錯的情況？
+What is the output when using Flan-T5 for NLI prediction with a given premise and hypothesis?
+不同語言的主詞、動詞、受詞順序常不同，需要重新組織句子嗎？
+What is the main advantage of SimCSE in a resource-limited environment?
